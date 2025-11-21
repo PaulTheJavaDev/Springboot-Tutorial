@@ -1,11 +1,10 @@
 package de.pls.home.cashcard;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
 import java.util.Optional;
 
 /**
@@ -23,7 +22,7 @@ public class CashCardController {
 
     private final CashCardRepository cashCardRepository;
 
-    private CashCardController(CashCardRepository cashCardRepository) {
+    public CashCardController(CashCardRepository cashCardRepository) {
 
         this.cashCardRepository = cashCardRepository;
 
@@ -44,6 +43,30 @@ public class CashCardController {
 
         }
 
+    }
+
+    /**
+     *
+     * @param newCashCardRequest Body that contains the data submitted to the API.<br>
+     *                           Spring automatically deserializes the data into a CashCard.
+     */
+    @PostMapping
+    private ResponseEntity<Void> createCashCard(
+            @RequestBody CashCard newCashCardRequest,
+            UriComponentsBuilder ucb
+    ) {
+
+        final String path = "cashcards/{id}";
+
+        // CThis stores a new CashCard and returns it with a generated ID.
+        CashCard savedCashCard = cashCardRepository.save(newCashCardRequest);
+
+        URI locationOfNewCashCard = ucb
+                .path(path)
+                .buildAndExpand(savedCashCard.id())
+                .toUri();
+
+        return ResponseEntity.created(locationOfNewCashCard).build();
     }
 
 }
