@@ -1,10 +1,14 @@
 package de.pls.home.cashcard;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -53,7 +57,7 @@ public class CashCardController {
     @PostMapping
     private ResponseEntity<Void> createCashCard(
             @RequestBody CashCard newCashCardRequest,
-            UriComponentsBuilder ucb
+            UriComponentsBuilder uriComponentsBuilder
     ) {
 
         final String path = "cashcards/{id}";
@@ -61,7 +65,7 @@ public class CashCardController {
         // CThis stores a new CashCard and returns it with a generated ID.
         CashCard savedCashCard = cashCardRepository.save(newCashCardRequest);
 
-        URI locationOfNewCashCard = ucb
+        URI locationOfNewCashCard = uriComponentsBuilder
                 .path(path)
                 .buildAndExpand(savedCashCard.id())
                 .toUri();

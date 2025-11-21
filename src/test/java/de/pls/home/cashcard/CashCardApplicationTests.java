@@ -11,25 +11,26 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 
 import java.net.URI;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT) // Makes it able to perform Web-Tests
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-class CashCardApplicationTests {
 
-    private final Long idToSearchFor = 99L;
+// Makes interference from other Tests, Starts every Test with a clean state, e.g., after creating a CashCard in the Creation test, it gets cleaned
+// @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+class CashCardApplicationTests {
 
     @Autowired
     TestRestTemplate restTemplate;
-
     @Autowired
-    CashCardRepository cashCardRepository;
+    private CashCardRepository cashCardRepository;
 
     @Test
     void shouldReturnACashCardWhenDataIsSaved() {
 
         final String cashCardsURL = "/cashcards/";
+        final Long idToSearchFor = 99L;
         final String URLToSearchFor = cashCardsURL + idToSearchFor;
         ResponseEntity<String> responseToCashCardsURL = restTemplate.getForEntity(URLToSearchFor, String.class);
 
@@ -50,7 +51,12 @@ class CashCardApplicationTests {
     @Test
     void shouldNotReturnACashCardWithAnUnknownId() {
 
-        final long idToLookAfter = 346;
+        /*
+         The test supposed to fail did not fail because I mistakenly set
+         'idToLookAfter' to 'idToSearchFor + 1', a now local variable. This made it 100, an ID that actually exists and has a value.
+         */
+
+        final long idToLookAfter = Integer.MAX_VALUE;
         final String cashCardsURL = "/cashcards/";
         final String URLToSearchFor = cashCardsURL + idToLookAfter;
 
@@ -64,6 +70,7 @@ class CashCardApplicationTests {
 
     }
 
+    @DirtiesContext
     @Test
     void shouldCreateANewCashCard() {
 
@@ -92,8 +99,41 @@ class CashCardApplicationTests {
 
     }
 
-}
+    @Test
+    void shouldReturnAllCashCardsWhenListIsRequested() {
 
-// Lehrer spezifische Rollen und Aufgaben, was darf ich Benutzer überhaupt sehen?
-// Verständnis davon ein mal überarbeiten e.g wir nur eine Liste von Fächern zurückgegeben, wenn ja, was sind Fächer Enums, Strings?
-// unregelmäßige Wochen, nicht immer derselbe Stundenplan
+        ResponseEntity<String> response = restTemplate.getForEntity("/cashcards", String.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+
+        DocumentContext documentContext = JsonPath.parse(response.getBody());
+
+        int cashCardCount = documentContext.read("$.length()");
+        assertThat(cashCardCount).isEqualTo(3);
+
+        List<Integer> ids = documentContext.read("$..id");
+        assertThat(ids).containsExactlyInAnyOrder(99, 100, 101);
+
+        List<Double> amounts = documentContext.read("$..amount");
+        assertThat(amounts).containsExactlyInAnyOrder(123.45, 1.00, 150.00);
+
+    }
+
+    @Test
+    void shouldReturnAPageOfCashCards() {
+
+        ResponseEntity<String> response = restTemplate.getForEntity("/cashcards?page=0&size=1", String.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+        DocumentContext documentContext = JsonPath.parse(response.getBody());
+
+        List<?> page = documentContext.read("$[*]");
+
+        assertThat(page).hasSize(1);
+
+
+    }
+
+}

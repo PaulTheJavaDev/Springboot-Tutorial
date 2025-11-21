@@ -41,6 +41,13 @@
             <scope>runtime</scope>
         </dependency>
 
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>3.27.6</version> <!-- aktuelle Version zum Stand 2025 -->
+            <scope>test</scope>
+        </dependency>
+
         <!-- Test starter -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -48,24 +55,5 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>3.2.5</version>
-                <configuration>
-                    <redirectTestOutputToFile>false</redirectTestOutputToFile>
-                    <printSummary>true</printSummary>
-                    <forkCount>1</forkCount>
-                    <reuseForks>true</reuseForks>
-
-                    <!-- THIS is the important part (Gradle's `showStandardStreams = true`) -->
-                    <useFile>false</useFile>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
 
 </project>

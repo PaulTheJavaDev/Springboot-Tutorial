@@ -10,6 +10,7 @@ import org.springframework.boot.test.json.JacksonTester;
 
 import java.io.IOException;
 
+import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -35,8 +36,31 @@ class CashCardJsonTest {
     void setUp() {
         cashCards = Arrays.array(
                 new CashCard(99L, 123.45),
-                new CashCard(100L, 100.00),
+                new CashCard(100L, 1.00),
                 new CashCard(101L, 150.00));
+    }
+
+    @Test
+    void cashCardListSerializationTest() throws IOException {
+
+        // writing values of cashCards into a new json file (jsonList in this case) and comparing it strictly to the already existing list.json
+        assertThat(jsonList.write(cashCards)).isStrictlyEqualToJson("list.json");
+
+    }
+
+    @Test
+    void cashCardListDeserializationTest() throws IOException {
+
+        final String expected = """
+         [
+            { "id": 99, "amount": 123.45 },
+            { "id": 100, "amount": 1.00 },
+            { "id": 101, "amount": 150.00 }
+         ]
+         """;
+
+        assertThat(jsonList.parse(expected)).isEqualTo(cashCards);
+
     }
 
     @Test
